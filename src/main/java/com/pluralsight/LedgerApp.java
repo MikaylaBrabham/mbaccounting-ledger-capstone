@@ -1,8 +1,6 @@
 package com.pluralsight;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -12,10 +10,11 @@ public class LedgerApp {
     static Scanner scanner = new Scanner(System.in);
     static boolean appRunning = true;
 
+    static ArrayList<Transaction> transactionsArrayList = new ArrayList<>();
+
     public static void main(String[] args) {
-
         try {
-
+            readTransactionFile();
             mainMenu();
 
         } catch (Exception e) {
@@ -81,9 +80,9 @@ public class LedgerApp {
         }
     }
 
-    public static ArrayList<Transaction> readTransactionFile() {
+    //    Reads Transactions from file if it exists, otherwise will only print file not found
+    public static void readTransactionFile() {
         try {
-            ArrayList<Transaction> transactionArrayList = new ArrayList<>();
 
             FileReader fileReader = new FileReader("src/main/resources/transactions.csv");
             BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -94,18 +93,32 @@ public class LedgerApp {
                 String[] splitRawTransaction = line.split("\\|");
                 Transaction newTransaction = new Transaction(splitRawTransaction[0], splitRawTransaction[1], splitRawTransaction[2], splitRawTransaction[3], Double.parseDouble(splitRawTransaction[4]));
 
-                transactionArrayList.add(newTransaction);
+                transactionsArrayList.add(newTransaction);
             }
 
-            return transactionArrayList;
+            bufferedReader.close();
 
         } catch (FileNotFoundException e) {
-            System.out.println("No file found!");
-            throw new RuntimeException(e);
+            System.out.println("No transaction file found!");
         } catch (Exception e) {
             System.out.println("Error reading file!");
             throw new RuntimeException(e);
         }
 
+    }
+
+    public static void writeTransactionToFile(Transaction transaction) {
+        try {
+
+            FileWriter fileWriter = new FileWriter("src/main/resources/transactions.csv", true);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+            bufferedWriter.write(transaction.getDate() + "|" + transaction.getTime() + "|" + transaction.getName() + "|" + transaction.getEntity() + "|" + transaction.getAmount());
+
+            bufferedWriter.close();
+        } catch (Exception e) {
+            System.out.println("Error writing file!");
+            throw new RuntimeException(e);
+        }
     }
 }
