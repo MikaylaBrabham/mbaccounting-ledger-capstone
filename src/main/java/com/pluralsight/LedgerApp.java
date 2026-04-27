@@ -66,9 +66,9 @@ public class LedgerApp {
 
                 System.out.println();
                 switch (userInput.toLowerCase()) {
-                    case "a" -> System.out.println("Coming Soon");
-                    case "d" -> System.out.println("Coming Soon");
-                    case "p" -> System.out.println("Coming Soon");
+                    case "a" -> displayLedgerEntries("all");
+                    case "d" -> displayLedgerEntries("deposits");
+                    case "p" -> displayLedgerEntries("payments");
                     case "r" -> System.out.println("Coming Soon");
                     case "x" -> menuRunning = false;
                     default -> System.out.println("Enter a letter that matches the options!");
@@ -121,4 +121,34 @@ public class LedgerApp {
             throw new RuntimeException(e);
         }
     }
+
+    public static void displayLedgerEntries(String filter) {
+
+
+        for (Transaction transaction : transactionsArrayList) {
+            switch (filter.toLowerCase()) {
+                case "all": {
+                    System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                    break;
+                }
+                case "deposits": {
+                    if (transaction.getAmount() > 0) {
+                        System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                    }
+                    break;
+                }
+                case "payments": {
+                    if (transaction.getAmount() < 0) {
+                        System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                    }
+                    break;
+                }
+            }
+
+        }
+//        Spacing
+        System.out.println();
+
+    }
+
 }
