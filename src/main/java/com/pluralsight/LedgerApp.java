@@ -1,5 +1,10 @@
 package com.pluralsight;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -74,5 +79,33 @@ public class LedgerApp {
             System.out.println("Error within ledgerMenu");
             throw new RuntimeException(e);
         }
+    }
+
+    public static ArrayList<Transaction> readTransactionFile() {
+        try {
+            ArrayList<Transaction> transactionArrayList = new ArrayList<>();
+
+            FileReader fileReader = new FileReader("src/main/resources/transactions.csv");
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] splitRawTransaction = line.split("\\|");
+                Transaction newTransaction = new Transaction(splitRawTransaction[0], splitRawTransaction[1], splitRawTransaction[2], splitRawTransaction[3], Double.parseDouble(splitRawTransaction[4]));
+
+                transactionArrayList.add(newTransaction);
+            }
+
+            return transactionArrayList;
+
+        } catch (FileNotFoundException e) {
+            System.out.println("No file found!");
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.out.println("Error reading file!");
+            throw new RuntimeException(e);
+        }
+
     }
 }

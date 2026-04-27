@@ -4,13 +4,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class Transaction {
-    private LocalDate date;
-    private LocalTime time;
+    private String date;
+    private String time;
     private String name;
     private String entity;
     private double amount;
 
-    public Transaction(LocalDate date, LocalTime time, String name, String entity, double amount) {
+    public Transaction(String date, String time, String name, String entity, double amount) {
         this.date = date;
         this.time = time;
         this.name = name;
@@ -18,11 +18,11 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public LocalDate getDate() {
+    public String getDate() {
         return date;
     }
 
-    public LocalTime getTime() {
+    public String getTime() {
         return time;
     }
 
