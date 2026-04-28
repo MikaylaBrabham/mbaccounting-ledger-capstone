@@ -69,7 +69,7 @@ public class LedgerApp {
                     case "a" -> displayLedgerEntries("all");
                     case "d" -> displayLedgerEntries("deposits");
                     case "p" -> displayLedgerEntries("payments");
-                    case "r" -> System.out.println("Coming Soon");
+                    case "r" -> reportsMenu();
                     case "x" -> menuRunning = false;
                     default -> System.out.println("Enter a letter that matches the options!");
                 }
@@ -151,4 +151,126 @@ public class LedgerApp {
 
     }
 
+    public static void reportsMenu() {
+        try {
+            boolean menuRunning = true;
+            while (menuRunning) {
+                System.out.println("= Reports menu =");
+                System.out.println("""
+                        Choose an option below:
+                        1. Month To Date
+                        2. Previous Month
+                        3. Year To Date
+                        4. Previous Year
+                        5. Search by Vendor
+                        0. Exit to Ledger Menu""");
+                System.out.print("Enter command: ");
+                int userInput = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (userInput) {
+                    case 1: {
+                        displayCustomReports("monthtd", "");
+                        break;
+                    }
+                    case 2: {
+                        displayCustomReports("prevmonth", "");
+                        break;
+                    }
+                    case 3: {
+                        displayCustomReports("yeartd", "");
+                        break;
+                    }
+                    case 4: {
+                        displayCustomReports("prevyear", "");
+                        break;
+                    }
+                    case 5: {
+                        System.out.print("Enter the vendor name: ");
+                        String vendorInput = scanner.nextLine();
+                        displayCustomReports("vendor", vendorInput);
+                    }
+                    case 0: {
+                        menuRunning = false;
+                        break;
+                    }
+
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //    Filter transactions by either built-in filters or custom input
+    public static void displayCustomReports(String type, String searchParam) {
+        ArrayList<Transaction> transactionsToDisplay = new ArrayList<>();
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+
+        switch (type) {
+            case "monthtd": {
+                for (Transaction transaction : transactionsArrayList) {
+                    LocalDate transactionDate = LocalDate.parse(transaction.getDate(), formatter);
+                    if (currentDate.getMonthValue() == transactionDate.getMonthValue() && currentDate.getYear() == transactionDate.getYear()) {
+                        transactionsToDisplay.add(transaction);
+                    }
+                }
+                break;
+            }
+            case "prevmonth": {
+                for (Transaction transaction : transactionsArrayList) {
+                    LocalDate transactionDate = LocalDate.parse(transaction.getDate(), formatter);
+
+//                    Checks if it is January. If it is go back to December (12) or keep the original answer
+                    if (currentDate.minusMonths(1).getMonthValue() == transactionDate.getMonthValue()) {
+                        transactionsToDisplay.add(transaction);
+                    }
+
+                }
+                break;
+            }
+            case "yeartd": {
+                for (Transaction transaction : transactionsArrayList) {
+                    LocalDate transactionDate = LocalDate.parse(transaction.getDate(), formatter);
+
+                    if (currentDate.getYear() == transactionDate.getYear()) {
+                        transactionsToDisplay.add(transaction);
+                    }
+
+                }
+                break;
+            }
+
+            case "prevyear": {
+                for (Transaction transaction : transactionsArrayList) {
+                    LocalDate transactionDate = LocalDate.parse(transaction.getDate(), formatter);
+
+                    if (currentDate.minusYears(1).getYear() == transactionDate.getYear()) {
+                        transactionsToDisplay.add(transaction);
+                    }
+                }
+                break;
+            }
+            case "vendor": {
+                for (Transaction transaction : transactionsArrayList) {
+                    if (transaction.getEntity().equalsIgnoreCase(searchParam)) {
+                        transactionsToDisplay.add(transaction);
+                    }
+                }
+            }
+        }
+
+        System.out.println();
+//        Print all transactions found with filters
+        if (!transactionsToDisplay.isEmpty()) {
+            for (Transaction transaction : transactionsToDisplay) {
+                System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+            }
+        } else {
+            System.out.println("No Transactions Found. ");
+        }
+        System.out.println();
+    }
 }
