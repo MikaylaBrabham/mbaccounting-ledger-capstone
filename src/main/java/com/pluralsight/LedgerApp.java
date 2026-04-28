@@ -39,7 +39,7 @@ public class LedgerApp {
             System.out.println();
             switch (userInput.toLowerCase()) {
                 case "d" -> makeDeposit();
-                case "p" -> System.out.println("Coming Soon");
+                case "p" -> makePayment();
                 case "l" -> ledgerMenu();
                 case "x" -> appRunning = false;
                 default -> System.out.println("Enter a letter that matches the options!");
@@ -289,7 +289,7 @@ public class LedgerApp {
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
 
-            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, transactionAmount);
+            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, (transactionAmount * -1));
 
             System.out.println("Saving transaction...");
             transactionsArrayList.add(createdTransaction);
@@ -300,4 +300,30 @@ public class LedgerApp {
         }
 
     }
+    public static void makePayment() {
+        try {
+            System.out.println("Enter the description: ");
+            String transactionName = scanner.nextLine();
+            System.out.println("Enter who you are sending money to: ");
+            String transactionVendor = scanner.nextLine();
+            System.out.println("Enter the amount of money received: ");
+            double transactionAmount = scanner.nextDouble();
+
+            LocalDateTime now = LocalDateTime.now();
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
+
+            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, Math.abs(transactionAmount));
+
+            System.out.println("Saving transaction...");
+            transactionsArrayList.add(createdTransaction);
+            writeTransactionToFile(createdTransaction);
+            System.out.println("Transaction saved!");
+        } catch (Exception e) {
+            System.out.println("Error Making Deposit!");
+        }
+
+    }
+
 }
