@@ -47,9 +47,8 @@ public class LedgerApp {
                     Make (P)ayment
                     (L)edger
                     E(X)it""");
-            writer.print("Enter command: ");
             writer.flush();
-            String userInput = scanner.nextLine();
+            String userInput = lineReader.readLine("Enter Command: ");
 
             writer.println();
             switch (userInput.toLowerCase()) {
