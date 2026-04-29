@@ -7,7 +7,6 @@ import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.InfoCmp;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -16,7 +15,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Scanner;
 
 public class LedgerApp {
     static boolean appRunning = true;
@@ -37,7 +35,7 @@ public class LedgerApp {
         }
     }
 
-    public static void mainMenu(Terminal terminal, LineReader lineReader) throws InterruptedException {
+    public static void mainMenu(Terminal terminal, LineReader lineReader) {
         ConsolePrompt prompt = new ConsolePrompt(terminal);
 //        Put terminal.writer in a separate variable to avoid writing it out 10000x
         PrintWriter writer = terminal.writer();
