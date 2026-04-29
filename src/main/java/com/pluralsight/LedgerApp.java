@@ -1,5 +1,8 @@
 package com.pluralsight;
 
+import org.jline.consoleui.prompt.ConsolePrompt;
+import org.jline.consoleui.prompt.PromptResultItemIF;
+import org.jline.consoleui.prompt.builder.PromptBuilder;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
@@ -12,10 +15,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Scanner;
 
 public class LedgerApp {
-    static Scanner scanner = new Scanner(System.in);
     static boolean appRunning = true;
 
     static ArrayList<Transaction> transactionsArrayList = new ArrayList<>();
@@ -23,9 +26,8 @@ public class LedgerApp {
     public static void main(String[] args) {
         try {
 //            Initialize the terminal and line reader
-            Terminal terminal = TerminalBuilder.builder().system(true).build();
+            Terminal terminal = TerminalBuilder.builder().system(true).provider("jni").build();
             LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).option(LineReader.Option.CASE_INSENSITIVE, true).build();
-
             readTransactionFile();
             mainMenu(terminal, lineReader);
 
@@ -36,35 +38,44 @@ public class LedgerApp {
     }
 
     public static void mainMenu(Terminal terminal, LineReader lineReader) throws InterruptedException {
-
-//       Put terminal.writer in a separate variable to avoid writing it out 10000x
+        ConsolePrompt prompt = new ConsolePrompt(terminal);
+//        Put terminal.writer in a separate variable to avoid writing it out 10000x
         PrintWriter writer = terminal.writer();
-        while (appRunning) {
-            writer.println("=== Marc's Computer Store Ledger ===");
-            writer.println("""
-                    Choose an option below:
-                    Add (D)eposit
-                    Make (P)ayment
-                    (L)edger
-                    E(X)it""");
-            writer.flush();
-            String userInput = lineReader.readLine("Enter Command: ");
+//        Menu selection Prompt
+        try {
+            while (appRunning) {
+                PromptBuilder builder = prompt.getPromptBuilder();
+                builder.createListPrompt()
+                        .name("menuOption")
+                        .message("Choose an option below:")
+                        .newItem().text("Add Deposit").add()
+                        .newItem().text("Make Payment").add()
+                        .newItem().text("View Ledger").add()
+                        .newItem().text("Exit Program").add()
+                        .addPrompt();
 
-            writer.println();
-            switch (userInput.toLowerCase()) {
-                case "d" -> makeDeposit();
-                case "p" -> makePayment();
-                case "l" -> ledgerMenu();
-                case "x" -> appRunning = false;
-                default -> writer.println("Enter a letter that matches the options!");
+                writer.println("\033[1;36m=== Marc's Computer Store Ledger ===\033[0m");
+                terminal.flush();
 
+                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
+
+                switch (result.get("menuOption").getResult()) {
+                    case "Add Deposit" -> makeDeposit(terminal, lineReader);
+                    case "Make Payment" -> makePayment(terminal, lineReader);
+                    case "View Ledger" -> ledgerMenu(terminal, lineReader);
+                    case "Exit Program" -> appRunning = false;
+                    default -> writer.println("Selected Invalid Option!");
+
+                }
+                Thread.sleep(500);
+                writer.println("Goodbye!");
             }
-            Thread.sleep(500);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        writer.println("Goodbye!");
     }
 
-    public static void ledgerMenu() {
+    public static void ledgerMenu(Terminal terminal, LineReader lineReader) {
         transactionsArrayList.sort(Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed());
 
         try {
@@ -79,14 +90,14 @@ public class LedgerApp {
                         (R)eports
                         E(X)it to Main Menu""");
                 System.out.print("Enter command: ");
-                String userInput = scanner.nextLine();
+                String userInput = lineReader.readLine();
 
                 System.out.println();
                 switch (userInput.toLowerCase()) {
                     case "a" -> displayLedgerEntries("all");
                     case "d" -> displayLedgerEntries("deposits");
                     case "p" -> displayLedgerEntries("payments");
-                    case "r" -> reportsMenu();
+                    case "r" -> reportsMenu(terminal, lineReader);
                     case "x" -> menuRunning = false;
                     default -> System.out.println("Enter a letter that matches the options!");
                 }
@@ -168,7 +179,7 @@ public class LedgerApp {
 
     }
 
-    public static void reportsMenu() {
+    public static void reportsMenu(Terminal terminal, LineReader lineReader) {
         try {
             boolean menuRunning = true;
             while (menuRunning) {
@@ -182,32 +193,31 @@ public class LedgerApp {
                         5. Search by Vendor
                         0. Exit to Ledger Menu""");
                 System.out.print("Enter command: ");
-                int userInput = scanner.nextInt();
-                scanner.nextLine();
+                String userInput = lineReader.readLine();
 
                 switch (userInput) {
-                    case 1: {
+                    case "1": {
                         displayCustomReports("monthtd", "");
                         break;
                     }
-                    case 2: {
+                    case "2": {
                         displayCustomReports("prevmonth", "");
                         break;
                     }
-                    case 3: {
+                    case "3": {
                         displayCustomReports("yeartd", "");
                         break;
                     }
-                    case 4: {
+                    case "4": {
                         displayCustomReports("prevyear", "");
                         break;
                     }
-                    case 5: {
+                    case "5": {
                         System.out.print("Enter the vendor name: ");
-                        String vendorInput = scanner.nextLine();
+                        String vendorInput = lineReader.readLine();
                         displayCustomReports("vendor", vendorInput);
                     }
-                    case 0: {
+                    case "0": {
                         menuRunning = false;
                         break;
                     }
@@ -291,15 +301,14 @@ public class LedgerApp {
         System.out.println();
     }
 
-    public static void makeDeposit() {
+    public static void makeDeposit(Terminal terminal, LineReader lineReader) {
         try {
             System.out.print("Enter the description: ");
-            String transactionName = scanner.nextLine();
+            String transactionName = lineReader.readLine();
             System.out.print("Enter who you are getting money from: ");
-            String transactionVendor = scanner.nextLine();
+            String transactionVendor = lineReader.readLine();
             System.out.print("Enter the amount of money received: ");
-            double transactionAmount = scanner.nextDouble();
-            scanner.nextLine();
+            double transactionAmount = Double.parseDouble(lineReader.readLine());
 
             LocalDateTime now = LocalDateTime.now();
 
@@ -318,15 +327,14 @@ public class LedgerApp {
 
     }
 
-    public static void makePayment() {
+    public static void makePayment(Terminal terminal, LineReader lineReader) {
         try {
             System.out.print("Enter the description: ");
-            String transactionName = scanner.nextLine();
+            String transactionName = lineReader.readLine();
             System.out.print("Enter who you are sending money to: ");
-            String transactionVendor = scanner.nextLine();
+            String transactionVendor = lineReader.readLine();
             System.out.print("Enter the amount of money received: ");
-            double transactionAmount = scanner.nextDouble();
-            scanner.nextLine();
+            double transactionAmount = Double.parseDouble(lineReader.readLine());
 
             LocalDateTime now = LocalDateTime.now();
 
