@@ -137,6 +137,7 @@ public class LedgerApp {
             }
         } catch (Exception e) {
             System.out.println("Error within ledgerMenu");
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -177,24 +178,24 @@ public class LedgerApp {
 
                 switch (result.get("reportsMenuOption").getResult()) {
                     case "Month To Date": {
-                        displayCustomReports("monthtd", "");
+                        displayCustomReports("monthtd", "", terminal, lineReader);
                         break;
                     }
                     case "Previous Month": {
-                        displayCustomReports("prevmonth", "");
+                        displayCustomReports("prevmonth", "", terminal, lineReader);
                         break;
                     }
                     case "Year To Date": {
-                        displayCustomReports("yeartd", "");
+                        displayCustomReports("yeartd", "", terminal, lineReader);
                         break;
                     }
                     case "Previous Year": {
-                        displayCustomReports("prevyear", "");
+                        displayCustomReports("prevyear", "", terminal, lineReader);
                         break;
                     }
                     case "Search By Vendor": {
                         String vendorInput = lineReader.readLine("Enter the vendor name: ");
-                        displayCustomReports("vendor", vendorInput);
+                        displayCustomReports("vendor", vendorInput, terminal, lineReader);
                     }
                     case "Back to Ledger Menu": {
                         menuRunning = false;
@@ -371,10 +372,16 @@ public class LedgerApp {
     }
 
     //    Filter transactions by either built-in filters or custom input
-    public static void displayCustomReports(String type, String searchParam) {
+    public static void displayCustomReports(String type, String searchParam, Terminal terminal, LineReader lineReader) {
         ArrayList<Transaction> transactionsToDisplay = new ArrayList<>();
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        int maxDateLength = 10;
+        int maxTimeLength = 8;
+        int maxDescriptionLength = 0;
+        int maxVendorLength = 0;
+        int maxAmountLength = 0;
 
 
         switch (type) {
@@ -430,16 +437,73 @@ public class LedgerApp {
             }
         }
 
-        System.out.println();
-//        Print all transactions found with filters
-        if (!transactionsToDisplay.isEmpty()) {
-            for (Transaction transaction : transactionsToDisplay) {
-                System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+        for (Transaction transaction : transactionsToDisplay) {
+            //            Find the longest transaction string for styling
+            if (transaction.getName().length() > maxDescriptionLength) {
+                maxDescriptionLength = transaction.getName().length();
             }
-        } else {
-            System.out.println("No Transactions Found. ");
+            if (transaction.getEntity().length() > maxVendorLength) {
+                maxVendorLength = transaction.getEntity().length();
+            }
+            if (Double.toString(transaction.getAmount()).length() > maxAmountLength) {
+                maxAmountLength = Double.toString(transaction.getAmount()).length();
+            }
         }
-        System.out.println();
+
+        PrintWriter writer = terminal.writer();
+
+        AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
+        if (transactionsToDisplay.isEmpty()) {
+            transactionListBuilder.append("No Transactions Found!");
+        } else {
+            for (Transaction transaction : transactionsToDisplay) {
+
+//            Append each transaction to builder with correct formatting for the table (the math is very precise per-column)
+                transactionListBuilder
+                        .append("|| ")
+                        .append(transaction.getDate()).append(repeater(maxDateLength / 2 - 2, " "))
+                        .append("|| ")
+                        .append(transaction.getTime()).append(repeater(maxTimeLength / 2 - 1, " "))
+                        .append("|| ")
+                        .append(transaction.getName()).append(repeater(((maxDescriptionLength / 2 - 4) + (maxDescriptionLength == transaction.getName().length() ? 0 : maxDescriptionLength - transaction.getName().length())), " "))
+                        .append("|| ")
+                        .append(transaction.getEntity()).append(repeater((maxVendorLength / 3 - 9) + (maxDescriptionLength == transaction.getEntity().length() ? 0 : maxDescriptionLength - transaction.getEntity().length()), " "))
+                        .append("|| ")
+                        .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
+                        .append(repeater((maxAmountLength / 2 - 11) + (maxDescriptionLength == Double.toString(transaction.getAmount()).length() ? 0 : maxDescriptionLength - Double.toString(transaction.getAmount()).length()), " ")).append(Double.toString(transaction.getAmount()))
+                        .style(AttributedStyle.DEFAULT)
+                        .append(" ||\n");
+            }
+        }
+
+
+        int dateTitle = "DATE".length();
+        int timeTitle = "TIME".length();
+        int descriptionTitle = "DESC.".length();
+        int vendorTitle = "VENDOR".length();
+        int amountTitle = "AMOUNT".length();
+
+        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + dateTitle + timeTitle + descriptionTitle + vendorTitle + amountTitle + 4;
+
+        AttributedString transactionList = transactionListBuilder.toAttributedString();
+
+//        Builds the table header and adds the transaction list
+        AttributedStringBuilder builder = new AttributedStringBuilder();
+        AttributedString title = builder
+                .append("=".repeat(maxLedgerLength + 8)).append("\n")
+                .append("||").append(repeater(maxDateLength / 2, " ")).append("DATE").append(repeater(maxDateLength / 2, " ")).append("|")
+                .append("|").append(repeater(maxTimeLength / 2, " ")).append("TIME").append(repeater(maxTimeLength / 2, " ")).append("|")
+                .append("|").append(repeater(maxDescriptionLength / 2, " ")).append("DESC.").append(repeater(maxDescriptionLength / 2, " ")).append(" |")
+                .append("|").append(repeater(maxVendorLength / 2, " ")).append("VENDOR").append(repeater(maxVendorLength / 2, " ")).append("|")
+                .append("|").append(repeater(maxAmountLength / 2, " ")).append("AMOUNT").append(repeater(maxAmountLength / 2, " ")).append("||\n")
+                .append(transactionList)
+                .append("=".repeat(maxLedgerLength + 8)).append("\n")
+                .toAttributedString();
+
+        terminal.puts(InfoCmp.Capability.clear_screen);
+        writer.println(title.toAnsi());
+        lineReader.readLine("Press ENTER to continue...");
+        terminal.flush();
     }
 
     public static void makeDeposit(Terminal terminal, LineReader lineReader) {
@@ -492,6 +556,11 @@ public class LedgerApp {
             System.out.println("Error Making Deposit!");
         }
 
+    }
+
+    //    Stops the repeats from going negative
+    public static String repeater(int amount, String string) {
+        return string.repeat(Math.max(0, amount));
     }
 
 }
