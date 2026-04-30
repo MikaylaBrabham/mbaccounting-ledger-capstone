@@ -7,6 +7,7 @@ import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.InfoCmp;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -26,7 +27,13 @@ public class LedgerApp {
 //            Initialize the terminal and line reader
             Terminal terminal = TerminalBuilder.builder().system(true).provider("jni").build();
             LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).option(LineReader.Option.CASE_INSENSITIVE, true).build();
+
+//            Add transactions from the file to the array for the app to use
             readTransactionFile();
+
+            terminal.puts(InfoCmp.Capability.clear_screen);
+            terminal.flush();
+
             mainMenu(terminal, lineReader);
 
         } catch (Exception e) {
@@ -44,7 +51,7 @@ public class LedgerApp {
             while (appRunning) {
                 PromptBuilder builder = prompt.getPromptBuilder();
                 builder.createListPrompt()
-                        .name("menuOption")
+                        .name("mainMenuOption")
                         .message("Choose an option below:")
                         .newItem().text("Add Deposit").add()
                         .newItem().text("Make Payment").add()
@@ -52,22 +59,20 @@ public class LedgerApp {
                         .newItem().text("Exit Program").add()
                         .addPrompt();
 
-                writer.println("\033[1;36m=== Marc's Computer Store Ledger ===\033[0m");
-                terminal.flush();
+                writer.println("=== Marc's Computer Store Ledger ===");
+                writer.flush();
 
                 Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
 
-                switch (result.get("menuOption").getResult()) {
+                switch (result.get("mainMenuOption").getResult()) {
                     case "Add Deposit" -> makeDeposit(terminal, lineReader);
                     case "Make Payment" -> makePayment(terminal, lineReader);
                     case "View Ledger" -> ledgerMenu(terminal, lineReader);
                     case "Exit Program" -> appRunning = false;
-                    default -> writer.println("Selected Invalid Option!");
 
                 }
-                Thread.sleep(500);
-                writer.println("Goodbye!");
             }
+            writer.println("Goodbye!");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -76,29 +81,31 @@ public class LedgerApp {
     public static void ledgerMenu(Terminal terminal, LineReader lineReader) {
         transactionsArrayList.sort(Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed());
 
+        ConsolePrompt prompt = new ConsolePrompt(terminal);
         try {
             boolean menuRunning = true;
             while (menuRunning) {
-                System.out.println("= Ledger menu =");
-                System.out.println("""
-                        Choose an option below:
-                        (A)ll Entries
-                        (D)eposits
-                        (P)ayments
-                        (R)eports
-                        E(X)it to Main Menu""");
-                System.out.print("Enter command: ");
-                String userInput = lineReader.readLine();
+                PromptBuilder builder = prompt.getPromptBuilder();
+                builder.createListPrompt()
+                        .name("ledgerMenuOption")
+                        .message("= Ledger menu =")
+                        .newItem().text("View All Entries").add()
+                        .newItem().text("View Deposits").add()
+                        .newItem().text("View Payments").add()
+                        .newItem().text("View Reports").add()
+                        .newItem().text("Back to Main Menu").add()
+                        .addPrompt();
 
-                System.out.println();
-                switch (userInput.toLowerCase()) {
-                    case "a" -> displayLedgerEntries("all");
-                    case "d" -> displayLedgerEntries("deposits");
-                    case "p" -> displayLedgerEntries("payments");
-                    case "r" -> reportsMenu(terminal, lineReader);
-                    case "x" -> menuRunning = false;
-                    default -> System.out.println("Enter a letter that matches the options!");
+                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
+                switch (result.get("ledgerMenuOption").getResult()) {
+                    case "View All Entries" -> displayLedgerEntries("all");
+                    case "View Deposits" -> displayLedgerEntries("deposits");
+                    case "View Payments" -> displayLedgerEntries("payments");
+                    case "View Reports" -> reportsMenu(terminal, lineReader);
+                    case "Back to Main Menu" -> menuRunning = false;
                 }
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
             }
         } catch (Exception e) {
             System.out.println("Error within ledgerMenu");
@@ -179,48 +186,53 @@ public class LedgerApp {
 
     public static void reportsMenu(Terminal terminal, LineReader lineReader) {
         try {
+            ConsolePrompt prompt = new ConsolePrompt(terminal);
+            PrintWriter writer = terminal.writer();
             boolean menuRunning = true;
             while (menuRunning) {
-                System.out.println("= Reports menu =");
-                System.out.println("""
-                        Choose an option below:
-                        1. Month To Date
-                        2. Previous Month
-                        3. Year To Date
-                        4. Previous Year
-                        5. Search by Vendor
-                        0. Exit to Ledger Menu""");
-                System.out.print("Enter command: ");
-                String userInput = lineReader.readLine();
+                PromptBuilder builder = prompt.getPromptBuilder();
+                builder.createListPrompt()
+                        .name("reportsMenuOption")
+                        .message("= Reports Menu =")
+                        .newItem().text("Month To Date").add()
+                        .newItem().text("Previous Month").add()
+                        .newItem().text("Year To Date").add()
+                        .newItem().text("Previous Year").add()
+                        .newItem().text("Search by Vendor").add()
+                        .newItem().text("Back to Ledger Menu").add()
+                        .addPrompt();
 
-                switch (userInput) {
-                    case "1": {
+                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
+
+                switch (result.get("reportsMenuOption").getResult()) {
+                    case "Month To Date": {
                         displayCustomReports("monthtd", "");
                         break;
                     }
-                    case "2": {
+                    case "Previous Month": {
                         displayCustomReports("prevmonth", "");
                         break;
                     }
-                    case "3": {
+                    case "Year To Date": {
                         displayCustomReports("yeartd", "");
                         break;
                     }
-                    case "4": {
+                    case "Previous Year": {
                         displayCustomReports("prevyear", "");
                         break;
                     }
-                    case "5": {
-                        System.out.print("Enter the vendor name: ");
-                        String vendorInput = lineReader.readLine();
+                    case "Search By Vendor": {
+                        String vendorInput = lineReader.readLine("Enter the vendor name: ");
                         displayCustomReports("vendor", vendorInput);
                     }
-                    case "0": {
+                    case "Back to Ledger Menu": {
                         menuRunning = false;
                         break;
                     }
 
                 }
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
