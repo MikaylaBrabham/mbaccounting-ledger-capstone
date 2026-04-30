@@ -5,6 +5,7 @@ import org.jline.consoleui.prompt.PromptResultItemIF;
 import org.jline.consoleui.prompt.builder.PromptBuilder;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
@@ -31,9 +32,6 @@ public class LedgerApp {
 //            Add transactions from the file to the array for the app to use
             readTransactionFile();
 
-            terminal.puts(InfoCmp.Capability.clear_screen);
-            terminal.flush();
-
             mainMenu(terminal, lineReader);
 
         } catch (Exception e) {
@@ -46,9 +44,24 @@ public class LedgerApp {
         ConsolePrompt prompt = new ConsolePrompt(terminal);
 //        Put terminal.writer in a separate variable to avoid writing it out 10000x
         PrintWriter writer = terminal.writer();
+
+        int timesLooped = 0;
 //        Menu selection Prompt
         try {
             while (appRunning) {
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
+
+                writer.println("=== Marc's Computer Store Ledger ===");
+                writer.println();
+
+//                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
+                if (timesLooped > 0) {
+                    writer.println();
+                }
+
+                writer.flush();
+
                 PromptBuilder builder = prompt.getPromptBuilder();
                 builder.createListPrompt()
                         .name("mainMenuOption")
@@ -59,8 +72,6 @@ public class LedgerApp {
                         .newItem().text("Exit Program").add()
                         .addPrompt();
 
-                writer.println("=== Marc's Computer Store Ledger ===");
-                writer.flush();
 
                 Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
 
@@ -71,6 +82,7 @@ public class LedgerApp {
                     case "Exit Program" -> appRunning = false;
 
                 }
+                timesLooped++;
             }
             writer.println("Goodbye!");
         } catch (Exception e) {
