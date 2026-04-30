@@ -322,7 +322,8 @@ public class LedgerApp {
 
         AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
         for (Transaction transaction : transactionsToDisplay) {
-//            Append each transaction to builder
+
+//            Append each transaction to builder with correct formatting for the table (the math is very precise per-column)
             transactionListBuilder
                     .append("|| ")
                     .append(transaction.getDate()).append(" ".repeat(maxDateLength / 2 - 2))
@@ -338,6 +339,7 @@ public class LedgerApp {
                     .style(AttributedStyle.DEFAULT)
                     .append(" ||\n");
         }
+
         String dateTitle = "DATE";
         String timeTitle = "TIME";
         String descriptionTitle = "DESC.";
@@ -348,7 +350,7 @@ public class LedgerApp {
 
         AttributedString transactionList = transactionListBuilder.toAttributedString();
 
-
+//        Builds the table header and adds the transaction list
         AttributedStringBuilder builder = new AttributedStringBuilder();
         AttributedString title = builder
                 .append("=".repeat(maxLedgerLength + 8)).append("\n")
