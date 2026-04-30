@@ -275,7 +275,11 @@ public class LedgerApp {
 
         ArrayList<Transaction> transactionsToDisplay = new ArrayList<>();
 
-        int maxLedgerLength = 0;
+        int maxDateLength = 10;
+        int maxTimeLength = 8;
+        int maxDescriptionLength = 0;
+        int maxVendorLength = 0;
+        int maxAmountLength = 0;
 
         for (Transaction transaction : transactionsArrayList) {
 
@@ -301,39 +305,58 @@ public class LedgerApp {
 
         }
 
+        for (Transaction transaction : transactionsToDisplay) {
+            //            Find the longest transaction string for styling
+            if (transaction.getName().length() > maxDescriptionLength) {
+                maxDescriptionLength = transaction.getName().length();
+            }
+            if (transaction.getEntity().length() > maxVendorLength) {
+                maxVendorLength = transaction.getEntity().length();
+            }
+            if (Double.toString(transaction.getAmount()).length() > maxAmountLength) {
+                maxAmountLength = Double.toString(transaction.getAmount()).length();
+            }
+        }
 
         PrintWriter writer = terminal.writer();
 
         AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
         for (Transaction transaction : transactionsToDisplay) {
-            String transactionString = transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity();
-
 //            Append each transaction to builder
-            transactionListBuilder.append(transaction.getDate())
-                    .append(" ")
-                    .append(transaction.getTime())
-                    .append(": ")
-                    .append(transaction.getName())
-                    .append(", ")
+            transactionListBuilder
+                    .append("|| ")
+                    .append(transaction.getDate()).append(" ".repeat(maxDateLength / 2 - 2))
+                    .append("|| ")
+                    .append(transaction.getTime()).append(" ".repeat(maxTimeLength / 2 - 1))
+                    .append("|| ")
+                    .append(transaction.getName()).append(" ".repeat(((maxDescriptionLength / 2 - 4) + (maxDescriptionLength == transaction.getName().length() ? 0 : maxDescriptionLength - transaction.getName().length()))))
+                    .append("|| ")
+                    .append(transaction.getEntity()).append(" ".repeat((maxVendorLength / 3 - 9) + (maxDescriptionLength == transaction.getEntity().length() ? 0 : maxDescriptionLength - transaction.getEntity().length())))
+                    .append("|| ")
                     .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
-                    .append("$")
-                    .append(Double.toString(transaction.getAmount()))
+                    .append(" ".repeat((maxAmountLength / 2 - 11) + (maxDescriptionLength == Double.toString(transaction.getAmount()).length() ? 0 : maxDescriptionLength - Double.toString(transaction.getAmount()).length()))).append(Double.toString(transaction.getAmount()))
                     .style(AttributedStyle.DEFAULT)
-                    .append(", Vendor: ")
-                    .append(transaction.getEntity())
-                    .append("\n");
-
-
-//            Find the longest transaction string for styling
-            if (transactionString.length() > maxLedgerLength) {
-                maxLedgerLength = transactionString.length();
-            }
+                    .append(" ||\n");
         }
+        String dateTitle = "DATE";
+        String timeTitle = "TIME";
+        String descriptionTitle = "DESC.";
+        String vendorTitle = "VENDOR";
+        String amountTitle = "AMOUNT";
+
+        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + dateTitle.length() + timeTitle.length() + descriptionTitle.length() + vendorTitle.length() + amountTitle.length() + 4;
+
         AttributedString transactionList = transactionListBuilder.toAttributedString();
+
 
         AttributedStringBuilder builder = new AttributedStringBuilder();
         AttributedString title = builder
                 .append("=".repeat(maxLedgerLength + 8)).append("\n")
+                .append("||").append(" ".repeat(maxDateLength / 2)).append("DATE").append(" ".repeat(maxDateLength / 2)).append("|")
+                .append("|").append(" ".repeat(maxTimeLength / 2)).append("TIME").append(" ".repeat(maxTimeLength / 2)).append("|")
+                .append("|").append(" ".repeat(maxDescriptionLength / 2)).append("DESC.").append(" ".repeat(maxDescriptionLength / 2)).append(" |")
+                .append("|").append(" ".repeat(maxVendorLength / 2)).append("VENDOR").append(" ".repeat(maxVendorLength / 2)).append("|")
+                .append("|").append(" ".repeat(maxAmountLength / 2)).append("AMOUNT").append(" ".repeat(maxAmountLength / 2)).append("||\n")
                 .append(transactionList)
                 .append("=".repeat(maxLedgerLength + 8)).append("\n")
                 .toAttributedString();
