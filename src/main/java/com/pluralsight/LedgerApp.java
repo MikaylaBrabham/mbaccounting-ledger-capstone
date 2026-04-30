@@ -55,7 +55,7 @@ public class LedgerApp {
                 terminal.puts(InfoCmp.Capability.clear_screen);
                 terminal.flush();
 
-                printTitle(terminal);
+                printTitle(terminal, "Marc's Computer Store Ledger");
                 writer.println();
 
 //                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
@@ -128,19 +128,18 @@ public class LedgerApp {
         }
     }
 
-    public static void printTitle(Terminal terminal) {
+    public static void printTitle(Terminal terminal, String text) {
         AttributedStringBuilder builder = new AttributedStringBuilder();
         PrintWriter writer = terminal.writer();
 
-
-
+//        Dynamically creates the top/bottom lines and spaces for the title based on how long the input text is
         AttributedString title = builder
                 .style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
-                .append("====================================\n")
-                .append("||                                ||\n")
-                .append("||  Marc's Computer Store Ledger  ||\n")
-                .append("||                                ||\n")
-                .append("====================================\n")
+                .append("=".repeat(text.length() + 8)).append("\n")
+                .append("||").append(" ".repeat(text.length() + 4)).append("||").append("\n")
+                .append("||  ").append(text).append("  ||\n")
+                .append("||").append(" ".repeat(text.length() + 4)).append("||").append("\n")
+                .append("=".repeat(text.length() + 8)).append("\n")
                 .toAttributedString();
 
         writer.println(title.toAnsi());
