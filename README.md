@@ -41,3 +41,8 @@ Install these tools on the machine before starting the app:
 
 The app opens an interactive menu in the terminal where you can add transactions and view reports.
 Use the arrow and enter keys to navigate through the app.
+
+##FAQ
+
+- Why was there a class not found error compiling the code?
+     Double check that the project has the Jline dependencies downloaded
