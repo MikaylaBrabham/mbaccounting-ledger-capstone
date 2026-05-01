@@ -137,7 +137,6 @@ public class LedgerApp {
             }
         } catch (Exception e) {
             System.out.println("Error within ledgerMenu");
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -501,12 +500,21 @@ public class LedgerApp {
 
     public static void makeDeposit(Terminal terminal, LineReader lineReader) {
         try {
-            System.out.print("Enter the description: ");
-            String transactionName = lineReader.readLine();
-            System.out.print("Enter who you are getting money from: ");
-            String transactionVendor = lineReader.readLine();
-            System.out.print("Enter the amount of money received: ");
-            double transactionAmount = Double.parseDouble(lineReader.readLine());
+            PrintWriter writer = terminal.writer();
+            String transactionName = lineReader.readLine("Enter the description: ");
+            String transactionVendor = lineReader.readLine("Enter who you are getting money from: ");
+            double transactionAmount;
+
+            while (true) {
+                try {
+                    transactionAmount = Double.parseDouble(lineReader.readLine("Enter the amount of money received: "));
+                    break;
+                } catch (Exception e) {
+                    writer.println("Enter a valid number!");
+                    writer.flush();
+                }
+            }
+
 
             LocalDateTime now = LocalDateTime.now();
 
@@ -515,10 +523,13 @@ public class LedgerApp {
 
             Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, Math.abs(transactionAmount));
 
-            System.out.println("Saving transaction...");
+            writer.println("Saving Transaction...");
+            writer.flush();
             transactionsArrayList.add(createdTransaction);
             writeTransactionToFile(createdTransaction);
-            System.out.println("Transaction saved!");
+            writer.println("Transaction Saved!");
+            writer.flush();
+            Thread.sleep(1000);
         } catch (Exception e) {
             System.out.println("Error Making Deposit!");
         }
@@ -527,26 +538,35 @@ public class LedgerApp {
 
     public static void makePayment(Terminal terminal, LineReader lineReader) {
         try {
-            System.out.print("Enter the description: ");
-            String transactionName = lineReader.readLine();
-            System.out.print("Enter who you are sending money to: ");
-            String transactionVendor = lineReader.readLine();
-            System.out.print("Enter the amount of money received: ");
-            double transactionAmount = Double.parseDouble(lineReader.readLine());
-
+            PrintWriter writer = terminal.writer();
+            String transactionName = lineReader.readLine("Enter the description: ");
+            String transactionVendor = lineReader.readLine("Enter who you are giving money to: ");
+            double transactionAmount;
+            while (true) {
+                try {
+                    transactionAmount = Double.parseDouble(lineReader.readLine("Enter the amount of money paid: "));
+                    break;
+                } catch (Exception e) {
+                    writer.println("Enter a valid number!");
+                    writer.flush();
+                }
+            }
             LocalDateTime now = LocalDateTime.now();
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
             Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, (transactionAmount * -1));
 
-            System.out.println("Saving transaction...");
+            writer.println("Saving Transaction...");
+            writer.flush();
             transactionsArrayList.add(createdTransaction);
             writeTransactionToFile(createdTransaction);
-            System.out.println("Transaction saved!");
+            writer.println("Transaction Saved!");
+            writer.flush();
+            Thread.sleep(1000);
         } catch (Exception e) {
-            System.out.println("Error Making Deposit!");
+            System.out.println("Error Making Payment!");
         }
 
     }
