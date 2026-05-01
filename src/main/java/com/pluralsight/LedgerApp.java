@@ -240,10 +240,14 @@ public class LedgerApp {
             String line;
 
             while ((line = bufferedReader.readLine()) != null) {
-                String[] splitRawTransaction = line.split("\\|");
-                Transaction newTransaction = new Transaction(splitRawTransaction[0], splitRawTransaction[1], splitRawTransaction[2], splitRawTransaction[3], Double.parseDouble(splitRawTransaction[4]));
+                try {
+                    String[] splitRawTransaction = line.split("\\|");
+                    Transaction newTransaction = new Transaction(splitRawTransaction[0], splitRawTransaction[1], splitRawTransaction[2], splitRawTransaction[3], Double.parseDouble(splitRawTransaction[4]));
 
-                transactionsArrayList.add(newTransaction);
+                    transactionsArrayList.add(newTransaction);
+//                    Skips line if formatted incorrectly (happens if prompts are empty when adding Payments/Deposits)
+                } catch (IndexOutOfBoundsException ignored) {
+                }
             }
 
             bufferedReader.close();
