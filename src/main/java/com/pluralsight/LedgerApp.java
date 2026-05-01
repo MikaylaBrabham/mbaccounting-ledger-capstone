@@ -324,7 +324,7 @@ public class LedgerApp {
 
         AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
         if (transactionsToDisplay.isEmpty()) {
-            transactionListBuilder.append("No Transactions Found!");
+            transactionListBuilder.append("\nNo Transactions Found!\n\n");
         } else {
             for (Transaction transaction : transactionsToDisplay) {
 
@@ -453,7 +453,7 @@ public class LedgerApp {
 
         AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
         if (transactionsToDisplay.isEmpty()) {
-            transactionListBuilder.append("No Transactions Found!");
+            transactionListBuilder.append("\nNo Transactions Found!\n\n");
         } else {
             for (Transaction transaction : transactionsToDisplay) {
 
