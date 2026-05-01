@@ -276,11 +276,11 @@ public class LedgerApp {
 
         ArrayList<Transaction> transactionsToDisplay = new ArrayList<>();
 
-        int maxDateLength = 10;
-        int maxTimeLength = 8;
-        int maxDescriptionLength = 0;
-        int maxVendorLength = 0;
-        int maxAmountLength = 0;
+        int maxDateLength = "DATE".length() + 10;
+        int maxTimeLength = "TIME".length() + 8;
+        int maxDescriptionLength = "DESC.".length();
+        int maxVendorLength = "VENDOR".length();
+        int maxAmountLength = "AMOUNT".length();
 
         for (Transaction transaction : transactionsArrayList) {
 
@@ -306,6 +306,7 @@ public class LedgerApp {
 
         }
 
+
         for (Transaction transaction : transactionsToDisplay) {
             //            Find the longest transaction string for styling
             if (transaction.getName().length() > maxDescriptionLength) {
@@ -322,46 +323,45 @@ public class LedgerApp {
         PrintWriter writer = terminal.writer();
 
         AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
-        for (Transaction transaction : transactionsToDisplay) {
+        if (transactionsToDisplay.isEmpty()) {
+            transactionListBuilder.append("No Transactions Found!");
+        } else {
+            for (Transaction transaction : transactionsToDisplay) {
 
 //            Append each transaction to builder with correct formatting for the table (the math is very precise per-column)
-            transactionListBuilder
-                    .append("|| ")
-                    .append(transaction.getDate()).append(" ".repeat(maxDateLength / 2 - 2))
-                    .append("|| ")
-                    .append(transaction.getTime()).append(" ".repeat(maxTimeLength / 2 - 1))
-                    .append("|| ")
-                    .append(transaction.getName()).append(" ".repeat(((maxDescriptionLength / 2 - 4) + (maxDescriptionLength == transaction.getName().length() ? 0 : maxDescriptionLength - transaction.getName().length()))))
-                    .append("|| ")
-                    .append(transaction.getEntity()).append(" ".repeat((maxVendorLength / 3 - 9) + (maxDescriptionLength == transaction.getEntity().length() ? 0 : maxDescriptionLength - transaction.getEntity().length())))
-                    .append("|| ")
-                    .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
-                    .append(" ".repeat((maxAmountLength / 2 - 11) + (maxDescriptionLength == Double.toString(transaction.getAmount()).length() ? 0 : maxDescriptionLength - Double.toString(transaction.getAmount()).length()))).append(Double.toString(transaction.getAmount()))
-                    .style(AttributedStyle.DEFAULT)
-                    .append(" ||\n");
+                transactionListBuilder
+                        .append("|| ")
+                        .append(addSpacing(transaction.getDate(), maxDateLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getTime(), maxTimeLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getName(), maxDescriptionLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getEntity(), maxVendorLength))
+                        .append(" || ")
+                        .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
+                        .append(addSpacing(Double.toString(transaction.getAmount()), maxAmountLength))
+                        .style(AttributedStyle.DEFAULT)
+                        .append(" ||\n");
+            }
         }
 
-        String dateTitle = "DATE";
-        String timeTitle = "TIME";
-        String descriptionTitle = "DESC.";
-        String vendorTitle = "VENDOR";
-        String amountTitle = "AMOUNT";
 
-        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + dateTitle.length() + timeTitle.length() + descriptionTitle.length() + vendorTitle.length() + amountTitle.length() + 4;
+        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + 22;
 
         AttributedString transactionList = transactionListBuilder.toAttributedString();
 
 //        Builds the table header and adds the transaction list
         AttributedStringBuilder builder = new AttributedStringBuilder();
         AttributedString title = builder
-                .append("=".repeat(maxLedgerLength + 8)).append("\n")
-                .append("||").append(" ".repeat(maxDateLength / 2)).append("DATE").append(" ".repeat(maxDateLength / 2)).append("|")
-                .append("|").append(" ".repeat(maxTimeLength / 2)).append("TIME").append(" ".repeat(maxTimeLength / 2)).append("|")
-                .append("|").append(" ".repeat(maxDescriptionLength / 2)).append("DESC.").append(" ".repeat(maxDescriptionLength / 2)).append(" |")
-                .append("|").append(" ".repeat(maxVendorLength / 2)).append("VENDOR").append(" ".repeat(maxVendorLength / 2)).append("|")
-                .append("|").append(" ".repeat(maxAmountLength / 2)).append("AMOUNT").append(" ".repeat(maxAmountLength / 2)).append("||\n")
+                .append("=".repeat(maxLedgerLength)).append("\n")
+                .append("|| ").append(addSpacing("DATE", maxDateLength)).append(" |")
+                .append("| ").append(addSpacing("TIME", maxTimeLength)).append(" |")
+                .append("| ").append(addSpacing("DESC", maxDescriptionLength)).append(" |")
+                .append("| ").append(addSpacing("VENDOR", maxVendorLength)).append(" |")
+                .append("| ").append(addSpacing("AMOUNT", maxAmountLength)).append(" ||\n")
                 .append(transactionList)
-                .append("=".repeat(maxLedgerLength + 8)).append("\n")
+                .append("=".repeat(maxLedgerLength)).append("\n")
                 .toAttributedString();
 
         terminal.puts(InfoCmp.Capability.clear_screen);
