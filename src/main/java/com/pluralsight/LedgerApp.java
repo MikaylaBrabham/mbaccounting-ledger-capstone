@@ -377,12 +377,11 @@ public class LedgerApp {
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        int maxDateLength = 10;
-        int maxTimeLength = 8;
-        int maxDescriptionLength = 0;
-        int maxVendorLength = 0;
-        int maxAmountLength = 0;
-
+        int maxDateLength = "DATE".length() + 10;
+        int maxTimeLength = "TIME".length() + 8;
+        int maxDescriptionLength = "DESC.".length();
+        int maxVendorLength = "VENDOR".length();
+        int maxAmountLength = "AMOUNT".length();
 
         switch (type) {
             case "monthtd": {
@@ -461,43 +460,37 @@ public class LedgerApp {
 //            Append each transaction to builder with correct formatting for the table (the math is very precise per-column)
                 transactionListBuilder
                         .append("|| ")
-                        .append(transaction.getDate()).append(repeater(maxDateLength / 2 - 2, " "))
-                        .append("|| ")
-                        .append(transaction.getTime()).append(repeater(maxTimeLength / 2 - 1, " "))
-                        .append("|| ")
-                        .append(transaction.getName()).append(repeater(((maxDescriptionLength / 2 - 4) + (maxDescriptionLength == transaction.getName().length() ? 0 : maxDescriptionLength - transaction.getName().length())), " "))
-                        .append("|| ")
-                        .append(transaction.getEntity()).append(repeater((maxVendorLength / 3 - 9) + (maxDescriptionLength == transaction.getEntity().length() ? 0 : maxDescriptionLength - transaction.getEntity().length()), " "))
-                        .append("|| ")
+                        .append(addSpacing(transaction.getDate(), maxDateLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getTime(), maxTimeLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getName(), maxDescriptionLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getEntity(), maxVendorLength))
+                        .append(" || ")
                         .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
-                        .append(repeater((maxAmountLength / 2 - 11) + (maxDescriptionLength == Double.toString(transaction.getAmount()).length() ? 0 : maxDescriptionLength - Double.toString(transaction.getAmount()).length()), " ")).append(Double.toString(transaction.getAmount()))
+                        .append(addSpacing(Double.toString(transaction.getAmount()), maxAmountLength))
                         .style(AttributedStyle.DEFAULT)
                         .append(" ||\n");
             }
         }
 
 
-        int dateTitle = "DATE".length();
-        int timeTitle = "TIME".length();
-        int descriptionTitle = "DESC.".length();
-        int vendorTitle = "VENDOR".length();
-        int amountTitle = "AMOUNT".length();
-
-        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + dateTitle + timeTitle + descriptionTitle + vendorTitle + amountTitle + 4;
+        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + 22;
 
         AttributedString transactionList = transactionListBuilder.toAttributedString();
 
 //        Builds the table header and adds the transaction list
         AttributedStringBuilder builder = new AttributedStringBuilder();
         AttributedString title = builder
-                .append("=".repeat(maxLedgerLength + 8)).append("\n")
-                .append("||").append(repeater(maxDateLength / 2, " ")).append("DATE").append(repeater(maxDateLength / 2, " ")).append("|")
-                .append("|").append(repeater(maxTimeLength / 2, " ")).append("TIME").append(repeater(maxTimeLength / 2, " ")).append("|")
-                .append("|").append(repeater(maxDescriptionLength / 2, " ")).append("DESC.").append(repeater(maxDescriptionLength / 2, " ")).append(" |")
-                .append("|").append(repeater(maxVendorLength / 2, " ")).append("VENDOR").append(repeater(maxVendorLength / 2, " ")).append("|")
-                .append("|").append(repeater(maxAmountLength / 2, " ")).append("AMOUNT").append(repeater(maxAmountLength / 2, " ")).append("||\n")
+                .append("=".repeat(maxLedgerLength)).append("\n")
+                .append("|| ").append(addSpacing("DATE", maxDateLength)).append(" |")
+                .append("| ").append(addSpacing("TIME", maxTimeLength)).append(" |")
+                .append("| ").append(addSpacing("DESC", maxDescriptionLength)).append(" |")
+                .append("| ").append(addSpacing("VENDOR", maxVendorLength)).append(" |")
+                .append("| ").append(addSpacing("AMOUNT", maxAmountLength)).append(" ||\n")
                 .append(transactionList)
-                .append("=".repeat(maxLedgerLength + 8)).append("\n")
+                .append("=".repeat(maxLedgerLength)).append("\n")
                 .toAttributedString();
 
         terminal.puts(InfoCmp.Capability.clear_screen);
@@ -561,6 +554,10 @@ public class LedgerApp {
     //    Stops the repeats from going negative
     public static String repeater(int amount, String string) {
         return string.repeat(Math.max(0, amount));
+    }
+
+    public static String addSpacing(String string, int length) {
+        return string + repeater(length - string.length(), " ");
     }
 
 }
