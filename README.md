@@ -1,49 +1,74 @@
-# Accounting Ledger
+# Penny Wise Accounting Ledger
 
-A Java console app for tracking ledger transactions for a small business.
+A full-stack accounting ledger application designed to help small businesses record, organize, and manage financial transactions using a Java application and a MySQL relational database.
 
 ## What the application does
 
-The app lets you:
-- add deposits
-- record payments
-- view the account ledger
-- filter the ledger entries by deposits or payments
-- run built-in reports, including month-to-date, previous month, year-to-date, previous year, and vendor searches
+The application lets users:
 
-Transactions are loaded from and saved to `src/main/resources/transactions.csv`.
+- Record deposits
+- Record payments
+- View the account ledger
+- Search and filter transactions
+- Generate financial reports, including:
+  - Month-to-Date
+  - Previous Month
+  - Year-to-Date
+  - Previous Year
+  - Vendor Search
+- Manage user and transaction records
+- Store financial data in a MySQL relational database
+
+The application uses a MySQL database (`pennywisedb.sql`) to securely store user and transaction information.
 
 ## Requirements
 
-Install these tools on the machine before starting the app:
+Install these tools before starting the application:
+
 - Java 17
 - Maven 3.9 or newer
+- MySQL 8.0 or newer
 
 ## How to start the application
 
-1. Open a terminal.
-2. Go to the project folder:
+1. Clone the repository:
 
-   ```bash
-   cd /path/to/accounting-ledger-capstone
-   ```
+```bash
+git clone https://github.com/Mamii868/accounting-ledger-capstone.git
+```
 
-3. Compile the application:
-   ```bash
-   mvn clean compile
-   ```
-   
-4. Start the app from the repository root:
+2. Navigate to the project directory:
 
-   ```bash
-   mvn exec:java -Dexec.mainClass=com.pluralsight.LedgerApp
-   ```
+```bash
+cd accounting-ledger-capstone
+```
 
-The app opens an interactive menu in the terminal where you can add transactions and view reports.
-Use the arrow and enter keys to navigate through the app.
+3. Import the provided database:
 
-## FAQ
+```bash
+mysql -u root -p < pennywisedb.sql
+```
 
-- Why was there a class not found error compiling the code?
+4. Compile the application:
 
-  Double check that the project has the Jline dependencies downloaded
+```bash
+mvn clean compile
+```
+
+5. Run the application:
+
+```bash
+mvn exec:java
+```
+
+The application launches and allows users to manage financial transactions, generate reports, and interact with the Penny Wise accounting system.
+
+## Technologies Used
+
+- Java 17
+- Maven
+- MySQL
+- SQL
+- Git
+- GitHub
+- JLine
